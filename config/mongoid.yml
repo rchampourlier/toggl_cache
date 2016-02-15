@@ -1,0 +1,16 @@
+base: &default
+  clients:
+    default:
+      uri: <%= ENV['TOGGL_CACHE_MONGODB_URI'] %>
+
+production:
+  <<: *default
+
+development:
+  <<: *default
+
+test:
+  clients:
+    default:
+      uri: <%= ENV['TOGGL_CACHE_MONGODB_URI'] %>_test
+      safe: true

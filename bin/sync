@@ -1,0 +1,34 @@
+#!/usr/bin/env ruby
+
+# Usage:
+#
+#   - Syncs reports since 1 month:
+#       bin/sync
+#
+#   - Sync reports since the specified date (use Ruby-parseable
+#     format):
+#       bin/sync 2015-01-01
+
+# Load dependencies
+require 'rubygems'
+require 'bundler/setup'
+
+$LOAD_PATH.unshift File.expand_path('../..', __FILE__)
+require 'config/boot'
+
+require 'toggl_cache/client'
+
+logger = Logger.new(STDOUT)
+logger.level = Logger::DEBUG
+client = TogglCache::Client.new(
+  api_token: ENV['TOGGL_CACHE_API_TOKEN'],
+  logger: logger
+)
+
+date_since = Time.parse(ARGV[0]) if ARGV[0].present?
+
+TogglCache.sync_reports(
+  client,
+  ENV['TOGGL_CACHE_WORKSPACE_ID'],
+  date_since
+)
