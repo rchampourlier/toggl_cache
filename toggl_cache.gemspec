@@ -25,6 +25,8 @@ Gem::Specification.new do |spec|
   spec.test_files    = spec.files.grep(%r{^(test|spec|features)/})
   spec.require_paths = ["lib"]
 
+  spec.add_dependency "i18n"
+  spec.add_dependency "activesupport-inflector"
   spec.add_dependency "pg"
   spec.add_dependency "sequel"
   spec.add_dependency "sequel_pg"

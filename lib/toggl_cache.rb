@@ -1,9 +1,13 @@
-require 'toggl_cache/report'
-require 'toggl_cache/version'
+# frozen_string_literal: true
+require "toggl_cache/data/report_repository"
+require "toggl_cache/version"
 
-# Facility to store/cache Toggl reports data in a MongoDB datastore
+# Facility to store/cache Toggl reports data in a PostgreSQL database.
 module TogglCache
-  DEFAULT_DATE_SINCE = 1.month.ago
+  HOUR = 3_600
+  DAY = 24 * HOUR
+  MONTH = 31 * DAY
+  DEFAULT_DATE_SINCE = Time.now - 1 * MONTH
 
   # Fetches new and updated reports from the specified start
   # date to now. By default, fetches all reports since 1 month
@@ -13,11 +17,11 @@ module TogglCache
   # The fetched reports either update the already
   # existing ones, or create new ones.
   #
-  # @param client [TogglCache::Client] configured client
+  # @param client [TogglAPI::Client] a configured client
   # @param workspace_id [String] Toggl workspace ID
   # @param date_since [Date] Date since when to fetch
   #   the reports.
-  def sync_reports(client, workspace_id, date_since = nil)
+  def self.sync_reports(client, workspace_id, date_since = nil)
     reports = fetch_reports(
       client,
       workspace_id,
@@ -25,7 +29,6 @@ module TogglCache
     )
     process_reports(reports)
   end
-  module_function :sync_reports
 
   # Fetch from Toggl
   # @param client [TogglCache::Client] configured client
@@ -34,7 +37,7 @@ module TogglCache
   #   the reports
   # @param date_until [Date] Date until when to fetch
   #   the reports, defaults to Time.now
-  def fetch_reports(client, workspace_id, date_since, date_until = Time.now)
+  def self.fetch_reports(client, workspace_id, date_since, date_until = Time.now)
     if date_until.year > date_since.year
       fetch_reports(
         client,
@@ -50,18 +53,16 @@ module TogglCache
     else
       options = {
         workspace_id: workspace_id,
-        since: date_since.strftime('%Y-%m-%d'),
-        until: date_until.strftime('%Y-%m-%d')
+        since: date_since.strftime("%Y-%m-%d"),
+        until: date_until.strftime("%Y-%m-%d")
       }
       client.fetch_reports_multiple_pages(options)
     end
   end
-  module_function :fetch_reports
 
-  def process_reports(reports)
+  def self.process_reports(reports)
     reports.each do |report|
-      Report.create_or_update(report)
+      Data::ReportRepository.create_or_update(report)
     end
   end
-  module_function :process_reports
 end
