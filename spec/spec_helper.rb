@@ -1,38 +1,46 @@
+# frozen_string_literal: true
 # Load dependencies
-require 'rubygems'
-require 'bundler/setup'
+require "rubygems"
+require "bundler/setup"
+require "rspec"
+require "webmock/rspec"
+require "rack/test"
+require "pry"
 
-ENV['TOGGL_CACHE_ENV'] = 'test'
-
-if ENV['CI']
-  # Running on CI, setup Coveralls
-  require 'coveralls'
-  Coveralls.wear!
-else
-  # Running locally, setup simplecov
-  require 'simplecov'
-  require 'simplecov-json'
-  SimpleCov.start do
-    add_filter do |src|
-      # Ignoring files from the spec directory
-      src.filename =~ %r{/spec/}
-    end
+require "simplecov"
+SimpleCov.start do
+  add_filter do |src|
+    # Ignoring files from the spec directory
+    src.filename =~ %r{/spec/}
   end
-  SimpleCov.formatter = SimpleCov::Formatter::JSONFormatter
 end
 
-$LOAD_PATH.unshift File.expand_path('../..', __FILE__) # root
-$LOAD_PATH.unshift File.expand_path('../../spec', __FILE__)
-require 'config/boot'
+# ENV["APP_ENV"] replaces "RACK_ENV" since we're not in
+# a Rack context.
+ENV["APP_ENV"] = "test"
+require File.expand_path("../../config/boot", __FILE__)
 
-require 'lib/toggl_cache'
+Dir[File.expand_path("../support/**/*.rb", __FILE__)].each { |f| require(f) }
 
-# Cleaning database after each test
-require 'lib/toggl_cache/issue'
-require 'lib/toggl_cache/project_state'
+# Database setup, teardown and cleanup during tests
+require "sequel/extensions/migration"
+require "toggl_cache/data/report_repository"
+client = TogglCache::Data::DB
+
+MIGRATIONS_DIR = File.expand_path("../../config/db_migrations", __FILE__)
 RSpec.configure do |config|
+
+  config.before(:all) do
+    Sequel::Migrator.apply(client, MIGRATIONS_DIR)
+  end
+
   config.after(:each) do
-    TogglCache::Issue.destroy_all
-    TogglCache::ProjectState.destroy_all
+    TogglCache::Data::ReportRepository.delete_where("TRUE")
+  end
+
+  config.after(:all) do
+    Sequel::Migrator.apply(client, MIGRATIONS_DIR, 0)
   end
 end
+
+require "toggl_cache"

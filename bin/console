@@ -1,13 +1,14 @@
 #!/usr/bin/env ruby
 
 # Load dependencies
-require 'rubygems'
-require 'bundler/setup'
+require "rubygems"
+require "bundler/setup"
 
-$LOAD_PATH.unshift File.expand_path('../..', __FILE__)
-require 'config/boot'
+$LOAD_PATH.unshift File.expand_path("../..", __FILE__)
+require "config/boot"
 
-require 'toggl_cache/client'
+require "toggl_api/client"
+require "toggl_api/reports_client"
 
-require 'pry'
+require "pry"
 Pry.start
