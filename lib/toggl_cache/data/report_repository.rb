@@ -21,11 +21,11 @@ module TogglCache
       # If the issue already exists (unicity key is `toggl_id`)
       # the row is updated instead.
       def self.create_or_update(report)
-        toggl_id = report["id"]
+        toggl_id = report["id"].to_s
         if exist_with_toggl_id?(toggl_id)
-          update_where({ toggl_id: toggl_id }, row(report))
+          update_where({ toggl_id: toggl_id }, row(report: report))
         else
-          table.insert row(report)
+          table.insert row(report: report, insert_created_at: true)
         end
       end
 
@@ -64,7 +64,7 @@ module TogglCache
       def self.row(report:, insert_created_at: false, insert_updated_at: true)
         new_report = map_report_attributes(report: report)
         new_report = add_timestamps(
-          report: report,
+          report: new_report,
           insert_created_at: insert_created_at,
           insert_updated_at: insert_updated_at
         )
@@ -72,12 +72,12 @@ module TogglCache
       end
 
       def self.map_report_attributes(report:)
-        new_report = report.slice(*MAPPED_REPORT_ATTRIBUTES)
-        new_report = report.merge(
+        new_report = report.select { |k, _| MAPPED_REPORT_ATTRIBUTES.include?(k) }
+        new_report = new_report.merge(
           duration: report["dur"] / 1_000,
           end: report["end"] ? Time.parse(report["end"]) : nil,
           start: Time.parse(report["start"]),
-          toggl_id: report["id"],
+          toggl_id: report["id"].to_s,
           toggl_updated: Time.parse(report["updated"])
         )
         new_report
