@@ -8,5 +8,7 @@ Style/EmptyLinesAroundModuleBody:
   Enabled: false
 Style/EmptyLinesAroundClassBody:
   Enabled: false
+Style/EmptyLinesAroundBlockBody:
+  Enabled: false
 Style/AlignParameters:
   EnforcedStyle: with_fixed_indentation
