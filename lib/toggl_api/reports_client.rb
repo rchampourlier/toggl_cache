@@ -43,7 +43,7 @@ module TogglAPI
     # @param url [String]
     # @param params [Hash]: Toggl API params
     def fetch_reports_raw(url, params)
-      logger.info "Fetching Toggl reports for params #{params}"
+      logger.info "Fetching Toggl reports for params #{params}" if logger
       params = { user_agent: @user_agent }.merge(params)
       response = HTTParty.get(
         url,

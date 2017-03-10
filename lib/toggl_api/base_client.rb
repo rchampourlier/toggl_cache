@@ -1,8 +1,7 @@
 # frozen_string_literal: true
-require "logger"
 
 module TogglAPI
-
+  DEFAULT_WORKSPACE_ID = ENV["TOGGL_WORKSPACE_ID"]
   Error = Class.new(StandardError)
 
   # Superclass for API clients.
@@ -15,10 +14,10 @@ module TogglAPI
     #
     # @param api_token [String] Toggl API token, for authentication
     # @param user_agent [String] defaults to "TogglCache"
-    # @param logger [Logger] used to log message (defaults to a logger
-    #   to STDOUT at info level)
+    # @param logger [Logger] used to log messages (in particular fetch
+    #   events). Defaults to nil.
     #
-    def initialize(api_token: default_api_token, user_agent: default_user_agent, logger: default_logger)
+    def initialize(api_token: default_api_token, user_agent: default_user_agent, logger: nil)
       raise "Missing api_token" if api_token.nil? || api_token.empty?
       @api_token = api_token
       @user_agent = user_agent
@@ -33,12 +32,6 @@ module TogglAPI
       DEFAULT_USER_AGENT
     end
 
-    def default_logger
-      logger = ::Logger.new(STDOUT)
-      logger.level = ::Logger::FATAL
-      logger
-    end
-
     def credentials
       {
         username: @api_token,
@@ -50,6 +43,10 @@ module TogglAPI
       {
         "Content-Type" => "application/json"
       }
+    end
+
+    def default_workspace_id
+      DEFAULT_WORKSPACE_ID
     end
   end
 end

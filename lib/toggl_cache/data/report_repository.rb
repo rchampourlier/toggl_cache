@@ -11,30 +11,32 @@ module TogglCache
 
       MAPPED_REPORT_ATTRIBUTES = %w(
         description
+        pid
         project
         uid
         user
         task
+        tid
       ).freeze
 
       # It inserts a new issue row with the specified data.
-      # If the issue already exists (unicity key is `toggl_id`)
+      # If the issue already exists (unicity key is `id`)
       # the row is updated instead.
       def self.create_or_update(report)
-        toggl_id = report["id"].to_s
-        if exist_with_toggl_id?(toggl_id)
-          update_where({ toggl_id: toggl_id }, row(report: report))
+        id = report["id"].to_s
+        if exist_with_id?(id)
+          update_where({ id: id }, row(report: report))
         else
           table.insert row(report: report, insert_created_at: true)
         end
       end
 
-      def self.find_by_toggl_id(toggl_id)
-        table.where(toggl_id: toggl_id).first
+      def self.find_by_id(id)
+        table.where(id: id).first
       end
 
-      def self.exist_with_toggl_id?(toggl_id)
-        table.where(toggl_id: toggl_id).count != 0
+      def self.exist_with_id?(id)
+        table.where(id: id).count != 0
       end
 
       def self.delete_where(where_data)
@@ -76,8 +78,8 @@ module TogglCache
         new_report = new_report.merge(
           duration: report["dur"] / 1_000,
           end: report["end"] ? Time.parse(report["end"]) : nil,
+          id: report["id"].to_s,
           start: Time.parse(report["start"]),
-          toggl_id: report["id"].to_s,
           toggl_updated: Time.parse(report["updated"])
         )
         new_report

@@ -1,4 +1,6 @@
 # frozen_string_literal: true
+require "logger"
+require "toggl_api/reports_client"
 require "toggl_cache/data/report_repository"
 require "toggl_cache/version"
 
@@ -23,25 +25,31 @@ module TogglCache
   # @param date_since [Date] Date since when to fetch
   #   the reports.
   def self.sync_reports(client: default_client,
-                        workspace_id: DEFAULT_WORKSPACE_ID,
-                        date_since: DEFAULT_DATE_SINCE)
+                        date_since: default_date_since)
     reports = fetch_reports(
       client: client,
-      workspace_id: workspace_id,
       date_since: date_since
     )
     process_reports(reports)
   end
 
   # Fetch from Toggl
-  # @param client [TogglCache::Client] configured client
+  #
+  # Handles a fetch over multiple years, which requires splitting the requests
+  # over periods extending on a single year (Toggl API requirement).
+  # # @param client [TogglCache::Client] configured client
   # @param workspace_id [String] Toggl workspace ID
   # @param date_since [Date] Date since when to fetch
   #   the reports
   # @param date_until [Date] Date until when to fetch
   #   the reports, defaults to Time.now
-  def self.fetch_reports(client:, workspace_id:, date_since:, date_until: Time.now)
-    if date_until.year > date_since.year
+  def self.fetch_reports(
+    client: default_client,
+    workspace_id: default_workspace_id,
+    date_since:,
+    date_until: Time.now
+  )
+    if date_since && date_until.year > date_since.year
       fetch_reports(
         client: client,
         workspace_id: workspace_id,
@@ -55,10 +63,9 @@ module TogglCache
       )
     else
       options = {
-        workspace_id: workspace_id,
-        since: date_since.strftime("%Y-%m-%d"),
-        until: date_until.strftime("%Y-%m-%d")
+        workspace_id: workspace_id, until: date_until.strftime("%Y-%m-%d")
       }
+      options[:since] = date_since.strftime("%Y-%m-%d") unless date_since.nil?
       client.fetch_reports(options)
     end
   end
@@ -69,8 +76,26 @@ module TogglCache
     end
   end
 
-  def self.default_client
+  def self.default_client(logger: default_logger)
+    return TogglAPI::ReportsClient.new(logger: logger) if logger
     TogglAPI::ReportsClient.new
   end
 
+  def self.default_workspace_id
+    DEFAULT_WORKSPACE_ID
+  end
+
+  def self.default_date_since
+    DEFAULT_DATE_SINCE
+  end
+
+  def self.default_logger
+    logger = ::Logger.new(STDOUT)
+    logger.level = default_log_level
+    logger
+  end
+
+  def self.default_log_level
+    Logger.const_get(ENV["TOGGL_CACHE_LOG_LEVEL"]&.upcase || "ERROR")
+  end
 end

@@ -7,12 +7,14 @@ Sequel.migration do
       String :description
       Integer :duration
       DateTime :end
+      Integer :pid
       String :project
       String :uid
       String :user
       DateTime :start
       String :task
-      String :toggl_id, unique: true
+      Integer :tid
+      String :id, unique: true
       DateTime :toggl_updated
 
       # Timestamps
