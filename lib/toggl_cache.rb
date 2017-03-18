@@ -8,8 +8,8 @@ require "toggl_cache/version"
 module TogglCache
   HOUR = 3_600
   DAY = 24 * HOUR
-  MONTH = 31 * DAY
-  DEFAULT_DATE_SINCE = Time.now - 1 * DAY # MONTH
+  WEEK = 7 * DAY
+  DEFAULT_DATE_SINCE = Time.now - 1 * WEEK
   DEFAULT_WORKSPACE_ID = ENV["TOGGL_WORKSPACE_ID"]
 
   # Fetches new and updated reports from the specified start
