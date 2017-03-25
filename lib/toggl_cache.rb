@@ -25,12 +25,15 @@ module TogglCache
   # @param date_since [Date] Date since when to fetch
   #   the reports.
   def self.sync_reports(client: default_client,
-                        date_since: default_date_since)
-    reports = fetch_reports(
+                        date_since: default_date_since,
+                        date_until: Time.now)
+    fetch_reports(
       client: client,
-      date_since: date_since
-    )
-    process_reports(reports)
+      date_since: date_since,
+      date_until: date_until
+    ) do |reports|
+      process_reports(reports)
+    end
   end
 
   # Fetch from Toggl
@@ -47,30 +50,35 @@ module TogglCache
     client: default_client,
     workspace_id: default_workspace_id,
     date_since:,
-    date_until: Time.now
+    date_until: Time.now,
+    &block
   )
+    raise "You must give a block to process fetched records" unless block_given?
     if date_since && date_until.year > date_since.year
       fetch_reports(
         client: client,
         workspace_id: workspace_id,
         date_since: date_since,
-        date_until: Date.new(date_since.year, 12, 31)
+        date_until: Date.new(date_since.year, 12, 31),
+        &block
       ) + fetch_reports(
         client: client,
         workspace_id: workspace_id,
         date_since: Date.new(date_since.year + 1, 1, 1),
-        date_until: date_until
+        date_until: date_until,
+        &block
       )
     else
       options = {
         workspace_id: workspace_id, until: date_until.strftime("%Y-%m-%d")
       }
       options[:since] = date_since.strftime("%Y-%m-%d") unless date_since.nil?
-      client.fetch_reports(options)
+      client.fetch_reports(options, &block)
     end
   end
 
-  def self.process_reports(reports)
+  def self.process_reports(reports, logger: default_logger)
+    logger.info "Processing #{reports.count} Toggl reports"
     reports.each do |report|
       Data::ReportRepository.create_or_update(report)
     end
