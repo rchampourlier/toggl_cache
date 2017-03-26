@@ -112,10 +112,9 @@ class TogglCLI < Thor
   end
 
   def find_reports(project_id, task_id)
+    reports = TogglCache::Data::ReportRepository.new
     with_spinner("Fetching matching reports...") do
-      where_criteria = { pid: project_id.to_i }
-      where_criteria[:tid] = task_id if task_id
-      TogglCache::Data::ReportRepository.table.where(where_criteria).entries
+      reports.where(project_id: project_id&.to_i, task_id: task_id&.to_i)
     end
   end
 
