@@ -9,11 +9,11 @@
 #     ruby scripts/sync_check_and_fix.rb
 
 # Load dependencies
-require 'rubygems'
-require 'bundler/setup'
-require 'logger'
+require "rubygems"
+require "bundler/setup"
+require "logger"
 
-$LOAD_PATH.unshift File.expand_path('../..', __FILE__)
-require 'config/boot'
+$LOAD_PATH.unshift File.expand_path("../..", __FILE__)
+require "config/boot"
 
 TogglCache.sync_check_and_fix

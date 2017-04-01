@@ -14,7 +14,7 @@ module TogglAPI
     #   - until
     #   - workspace_id
     #   - ... more params available, see Toggl API documentation for details
-    def fetch_reports(params, &block)
+    def fetch_reports(params)
       raise "Must give a block" unless block_given?
       page = 1
       current_total = 0
