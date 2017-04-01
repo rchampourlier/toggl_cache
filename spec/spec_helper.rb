@@ -35,7 +35,7 @@ RSpec.configure do |config|
   end
 
   config.after(:each) do
-    TogglCache::Data::ReportRepository.delete_where("TRUE")
+    TogglCache::Data::ReportRepository.new.delete_where("TRUE")
   end
 
   config.after(:all) do

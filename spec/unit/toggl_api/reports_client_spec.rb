@@ -4,8 +4,13 @@ require "toggl_api/reports_client"
 
 describe TogglAPI::ReportsClient do
   let(:options) { {} }
-  let(:expected_api_call_url) { "https://toggl_api_token:api_token@toggl.com/reports/api/v2/details?page=1&user_agent=TogglAPI" }
-
+  let(:expected_api_call_url) { "https://toggl.com/reports/api/v2/details?page=1&user_agent=TogglAPI" }
+  let(:expected_headers) do
+    {
+      "Authorization" => "Basic #{["toggl_api_token:api_token"].pack('m').delete("\r\n")}",
+      "Content-Type" => "application/json"
+    }
+  end
   let(:api_response_status) { 200 }
   let(:api_response_body) do
     {
@@ -20,24 +25,25 @@ describe TogglAPI::ReportsClient do
 
   before do
     stub_request(:get, expected_api_call_url)
-      .with(headers: { "Content-Type" => "application/json" })
+      .with(headers: expected_headers)
       .to_return(status: api_response_status, body: api_response_body, headers: {})
   end
 
-  describe "#fetch_reports(params)" do
+  describe "#fetch_reports(params, &block)" do
 
     context "only 1 page" do
       let(:total_count) { 50 }
 
       it "fetches the data only once" do
-        described_class.new.fetch_reports(options)
+        described_class.new.fetch_reports(options) {}
         # It will fail if it fetches several times because
         # the second request, with page=2, is not mocked.
       end
 
-      it "returns the received data" do
-        results = described_class.new.fetch_reports(options)
-        expect(results.count).to eq(50)
+      it "passes the received data to the specified block" do
+        results = described_class.new.fetch_reports(options) do |reports|
+          expect(reports.count).to eq(50)
+        end
       end
     end
 
@@ -53,18 +59,16 @@ describe TogglAPI::ReportsClient do
           data: data_page2
         }.to_json
         stub_request(:get, expected_api_call_url.gsub('page=1', 'page=2'))
-          .with(headers: { "Content-Type" => "application/json" })
+          .with(headers: expected_headers)
           .to_return(status: api_response_status, body: api_response_body_page2, headers: {})
       end
 
       it "fetches the additional pages" do
-        results = described_class.new.fetch_reports(options)
-        expect(results.count).to eq(60)
-      end
-
-      it "returns the merged data" do
-        results = described_class.new.fetch_reports(options)
-        expect(results.inject(0) { |s, i| s + i["id"] }).to eq(50 * 1 + 10 * 2)
+        total_count = 0
+        results = described_class.new.fetch_reports(options) do |reports|
+          total_count += reports.count
+        end
+        expect(total_count).to eq(60)
       end
     end
 
@@ -72,7 +76,7 @@ describe TogglAPI::ReportsClient do
       let(:api_response_status) { 500 }
 
       it "raises a TogglAPI::Error" do
-        expect { described_class.new.fetch_reports(options) }
+        expect { described_class.new.fetch_reports(options) {} }
           .to raise_error(TogglAPI::Error)
       end
     end

@@ -10,27 +10,25 @@ module TogglAPI
     API_URL = "https://toggl.com/reports/api/v2"
 
     # @param params [Hash]: Toggl API params
-    #   - date_since
-    #   - date_until
+    #   - since
+    #   - until
     #   - workspace_id
     #   - ... more params available, see Toggl API documentation for details
     def fetch_reports(params)
+      raise "Must give a block" unless block_given?
       page = 1
-      all_results = []
+      current_total = 0
       loop do
         results_raw = fetch_reports_details_raw(
           params.merge(page: page)
         )
-        results = results_raw["data"]
+        yield(results_raw["data"])
 
-        all_results += results
-        break if all_results.count == results_raw["total_count"]
+        current_total += results_raw["data"].count
+        break if current_total == results_raw["total_count"]
         page += 1
       end
-      all_results
     end
-
-    private
 
     def fetch_reports_details_raw(params)
       fetch_reports_raw(api_url(:details), params)
@@ -39,6 +37,8 @@ module TogglAPI
     def fetch_reports_summary_raw(params)
       fetch_reports_raw(api_url(:summary), params)
     end
+
+    private
 
     # @param url [String]
     # @param params [Hash]: Toggl API params
