@@ -5,8 +5,8 @@ Fetches reports data from Toggl API and caches them in a PostgreSQL database.
 This allows you to build applications performing complex operations on a large number of Toggl content without the Toggl API latency. You may also use it to backup your precious data!
 
 [![Build Status](https://travis-ci.org/rchampourlier/toggl_cache.svg)](https://travis-ci.org/rchampourlier/toggl_cache)
-[![Code Climate](https://codeclimate.com/github/rchampourlier/toggl_cache/badges/gpa.svg)](https://codeclimate.com/github/rchampourlier/toggl_cache)
-[![Coverage Status](https://coveralls.io/repos/github/rchampourlier/toggl_cache/badge.svg?branch=master)](https://coveralls.io/github/rchampourlier/toggl_cache?branch=master)
+[![Code Climate](https://codeclimate.com/repos/58d7ff3b88ccb7027b000baa/badges/182b308109bf20bd9dbf/gpa.svg)](https://codeclimate.com/repos/58d7ff3b88ccb7027b000baa/feed)
+[![Test Coverage](https://codeclimate.com/repos/58d7ff3b88ccb7027b000baa/badges/182b308109bf20bd9dbf/coverage.svg)](https://codeclimate.com/repos/58d7ff3b88ccb7027b000baa/coverage)
 
 ## Installation
 
