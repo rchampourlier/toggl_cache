@@ -1,5 +1,9 @@
 # History
 
+## 2017-04-01 - 0.2.1
+
+- Hotfix: bugs in `TogglCache`.
+
 ## 2017-03-25 - 0.2.0
 
 Synchronizing deleted records and old changes.

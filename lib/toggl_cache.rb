@@ -33,7 +33,8 @@ module TogglCache
     logger.info "Syncing reports from #{date_since} to #{date_until}."
     clear_cache(
       time_since: Time.parse("#{date_since} 00:00:00Z"),
-      time_until: Time.parse("#{date_until} 23:59:59Z")
+      time_until: Time.parse("#{date_until} 23:59:59Z"),
+      logger: logger
     )
     fetch_reports(
       client: client,
@@ -48,7 +49,7 @@ module TogglCache
   # report in the cache to now. Proceeds by comparing reports total
   # duration from Toggl (using the Reports API) and the total contained
   # in the cache. If a difference is detected, proceeds monthly and
-  # clear and reconstructs the cache for the invovled month.
+  # clear and reconstructs the cache for the concerned month.
   #
   # TODO: enable detecting a change in project/task level aggregates.
   def self.sync_check_and_fix(logger: default_logger)
@@ -77,8 +78,8 @@ module TogglCache
           logger.info "Checked total for #{year}/#{month}: ✅ (#{month_toggl})"
         else
           logger.info "Checked total for #{year}/#{month}: ❌ (Toggl: #{month_toggl}, cache: #{month_cache})"
-          TogglCache.clear_cache(year: year, month: month)
-          TogglCache.sync_reports_for_month(year: year, month: month)
+          TogglCache.clear_cache_for_month(year: year, month: month, logger: logger)
+          TogglCache.sync_reports_for_month(year: year, month: month, logger: logger)
         end
       end
     end
@@ -87,20 +88,22 @@ module TogglCache
   # An easy-to-use method to sync reports for a given month. Simply
   # performs a call to `sync_reports`.
   #
-  # @param year [Integer]
-  # @param month [Integer
-  def self.sync_reports_for_month(year:, month:)
+  # @param year: [Integer]
+  # @param month: [Integer
+  # @param logger: [Logger] (optional)
+  def self.sync_reports_for_month(year:, month:, logger: default_logger)
     date_since = Date.civil(year, month, 1)
     date_until = Date.civil(year, month, -1)
     sync_reports(
       date_since: date_since,
-      date_until: date_until
+      date_until: date_until,
+      logger: logger
     )
   end
 
   # Remove TogglCache's reports between the specified dates.
-  def self.clear_cache(time_since:, time_until:)
-    logger.info "Clearing cache from #{date_since} to #{date_until}."
+  def self.clear_cache(time_since:, time_until:, logger: default_logger)
+    logger.info "Clearing cache from #{time_since} to #{time_until}."
     reports = Data::ReportRepository.new
     reports.delete_starting(
       time_since: time_since,
@@ -114,7 +117,8 @@ module TogglCache
     date_until = Date.civil(year, month, -1)
     clear_cache(
       time_since: Time.parse("#{date_since} 00:00:00Z"),
-      time_until: Time.parse("#{date_until} 23:59:59Z")
+      time_until: Time.parse("#{date_until} 23:59:59Z"),
+      logger: logger
     )
   end
 
