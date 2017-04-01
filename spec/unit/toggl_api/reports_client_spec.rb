@@ -4,8 +4,13 @@ require "toggl_api/reports_client"
 
 describe TogglAPI::ReportsClient do
   let(:options) { {} }
-  let(:expected_api_call_url) { "https://toggl_api_token:api_token@toggl.com/reports/api/v2/details?page=1&user_agent=TogglAPI" }
-
+  let(:expected_api_call_url) { "https://toggl.com/reports/api/v2/details?page=1&user_agent=TogglAPI" }
+  let(:expected_headers) do
+    {
+      "Authorization" => "Basic #{["toggl_api_token:api_token"].pack('m').delete("\r\n")}",
+      "Content-Type" => "application/json"
+    }
+  end
   let(:api_response_status) { 200 }
   let(:api_response_body) do
     {
@@ -20,7 +25,7 @@ describe TogglAPI::ReportsClient do
 
   before do
     stub_request(:get, expected_api_call_url)
-      .with(headers: { "Content-Type" => "application/json" })
+      .with(headers: expected_headers)
       .to_return(status: api_response_status, body: api_response_body, headers: {})
   end
 
@@ -54,7 +59,7 @@ describe TogglAPI::ReportsClient do
           data: data_page2
         }.to_json
         stub_request(:get, expected_api_call_url.gsub('page=1', 'page=2'))
-          .with(headers: { "Content-Type" => "application/json" })
+          .with(headers: expected_headers)
           .to_return(status: api_response_status, body: api_response_body_page2, headers: {})
       end
 
