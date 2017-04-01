@@ -3,7 +3,6 @@ require "thor"
 require "tty-pager"
 require "tty-progressbar"
 require "tty-spinner"
-# require "tty-table"
 require File.expand_path("../../config/boot", __FILE__)
 require "toggl_api/client"
 require "toggl_cache/data/report_repository"
@@ -48,7 +47,7 @@ class TogglCLI < Thor
         say("MOVING!!!")
       end
     end
-    # TogglCache::Data::ReportRepository.create_or_update(report)
+    TogglCache::Data::ReportRepository.new.create_or_update(report)
   end
 
   private

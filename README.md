@@ -1,6 +1,6 @@
 # TogglCache
 
-Fetches reports data from Toggl API and caches them in a MongoDB store.
+Fetches reports data from Toggl API and caches them in a PostgreSQL database.
 
 This allows you to build applications performing complex operations on a large number of Toggl content without the Toggl API latency. You may also use it to backup your precious data!
 
@@ -37,6 +37,12 @@ client = TogglCache::Client.new(
   logger: logger
 )
 TogglCache.sync_reports(client, 'TOGGL-WORKSPACE-ID')
+```
+
+## The CLI
+
+```
+ruby lib/toggl_cli.rb [batch|help]
 ```
 
 ## Contributing
